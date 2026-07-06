@@ -125,6 +125,17 @@ Ranked by combined open-data coverage among jurisdictions with no comparable *op
 
 **Read:** LA is the clean pick — high population, most complete data. NYC is the real judgment call — the highest population and enforcement-intensity signal by far, worth the extra architectural work the missing permit model and different rule shape demand, rather than defaulting to whichever jurisdiction merely has the tidiest data.
 
+## Data pipeline: from research to a live, self-updating site
+
+Plain-English version of how everything in `research/` actually becomes something the site shows, and stays current without turning into another stale dataset itself.
+
+- **Adapter** — one small translator per city per category. Its only job: fetch that city's data from wherever it actually lives (an ArcGIS Feature Service, a Socrata API, whatever the research found), and convert it into ParkPulse's own common schema. LA's fields (`Posted_Day`, `Posted_Time`, `Odd_Even`) become ParkPulse's own generic fields — nothing downstream needs to know any one city's particular naming.
+- **Sync job** — a scheduled re-run of each adapter (daily/weekly) that refreshes ParkPulse's own stored copy. This is the real mechanism behind "keep it up to date where an API exists" — but it's only as fresh as the *source* allows, and LA's own two categories show the honest range: sweeping is a live, actively-edited service, so the sync job keeps it genuinely current with zero human involvement; permits is a real dataset frozen since 2015, so the sync job just keeps faithfully confirming "still 2015" — automation can't manufacture freshness the source doesn't have, only report the lack of it honestly (this is what the per-category confidence/staleness badge, above, is actually for). Jurisdiction-wide unsigned rules (the Walnut case) have no API to sync at all — those only get re-checked when the error-reporting pipeline surfaces a reason to look.
+- **Database** — ParkPulse's own single normalized store of everything every adapter has produced, each record stamped with its last successful sync time. The live site never queries a city's own servers directly (too slow, too many shapes) — only this one common store.
+- **Site** — address/pin in → resolve jurisdiction via the Census boundary layer → check the coverage registry → if supported, read that spot's already-synced record and render the color/status logic (above) → if not, show the honest "not covered yet, help us add it" state.
+
+**Sequencing implication:** this pipeline doesn't need to exist for all four categories or all five candidate cities before it's useful. A thin vertical slice — national boundary layer, coverage registry showing one real city, one real adapter (LA sweeping), basic lookup, sweeping's green/amber/red status only — validates the whole shape end to end. Meters, permits, crime, more cities, and the error-report pipeline all layer on afterward, once something real exists to build against.
+
 ## Open questions
 - What does the "not covered yet" state actually look like — gray fill only, or a lighter hint of jurisdiction-level metadata (population, at least the boundary) even with zero regulation data? Zillow-style "estimate not available" implies some baseline info is still shown.
 - What does the contribution guide need to teach a newcomer to build a real adapter — at minimum, the [dashboard-tracing method](research/dashboard-tracing-method.md), the common schema, and a worked example (the SF or LA adapter, once built).
@@ -135,17 +146,21 @@ Ranked by combined open-data coverage among jurisdictions with no comparable *op
 - Update cadence and monitoring for portal schema drift — Chicago's meter scraper precedent (community-maintained, unofficial) suggests this is a real, recurring maintenance cost, not a one-time build.
 
 ## Next steps
-- [ ] Get the national base layer working first: Census TIGER/Line boundaries + population on a map, every jurisdiction resolvable from a pin/address, all shown as "unsupported" — this is the actual v1 milestone, before any single adapter
+
+**Immediate — one research check, then build:**
+1. [ ] **Do this first:** check whether LA's actual CDS (Curb Data Specification) feed covers sweeping/permit data, or only loading-zone/curb-use data — determines whether the first adapter parses a standard feed or hand-codes against the ArcGIS service already found
+2. [ ] Build the thin vertical slice (see Data pipeline, above): national boundary layer with LA marked supported and everywhere else gray, one real LA sweeping adapter, basic address/pin lookup, sweeping's green/amber/red status only. Nothing else blocks on this — it validates the whole shape end to end.
+
+**After the slice exists, roughly in this order:**
 - [ ] Design the coverage registry schema (per-jurisdiction status + per-category granularity + population, so a contributor-facing "most-needed" view can sort by population × missing coverage)
-- [ ] Write the CONTRIBUTING guide for adding a jurisdiction (dashboard-tracing method, common schema, worked example) — needed before asking anyone to help
-- [ ] Re-check Chicago and Seattle's data gaps using the dashboard-tracing method before trusting either "unconfirmed"/gap call
-- [ ] Build the first real adapter — LA is the clean pick (population + most complete data); weigh NYC seriously too despite its permit-model gap, given its outsized population and enforcement intensity
 - [ ] Design the common schema with explicit per-category nullability and a "data as of" timestamp per category — and geometry-shape tolerance (LA's routes are polygons, SF's blocks are line segments; the schema needs to handle both, not assume one)
-- [ ] ~~Prototype the crime-risk aggregation approach~~ — **paused pending [Discussion #1](https://github.com/inkxel/parkpulse/discussions/1)**, not a committed build item. See [ETHICS.md](ETHICS.md).
 - [ ] Design the per-category confidence/staleness UI (not just the backend timestamp)
+- [ ] Extend to LA's permits and meters, then weigh NYC seriously despite its permit-model gap, given its outsized population and enforcement intensity
+- [ ] Re-check Chicago and Seattle's data gaps using the dashboard-tracing method before trusting either "unconfirmed"/gap call
+- [ ] Write the CONTRIBUTING guide for adding a jurisdiction (dashboard-tracing method, common schema, worked example) — needed before asking anyone to help
 - [ ] Design the error-report → GitHub Issue pipeline, including the anti-spam/moderation step before anything posts publicly
-- [ ] Write the disclaimer and decide its placement (first-run notice vs. persistent banner) before any public build ships
-- [ ] Add jurisdiction-wide default rules as a schema-level concept (distinct from block/zone-specific data) — needed for cases like Walnut, CA's unsigned citywide overnight-permit rule
 - [ ] Extend the error-report pipeline to accept "my city has an unsigned rule like X" as its own report type, feeding targeted per-city code lookups instead of blind nationwide scraping
 - [ ] Check whether each first-adapter city's municipal code is hosted on Municode/American Legal/General Code before assuming a bespoke scrape is needed
-- [ ] **High-priority:** check whether LA, SF, DC, or Seattle's actual CDS (Curb Data Specification) feeds cover sweeping/permit data, or only loading-zone/curb-use data — if any do, that's a real multi-city shortcut worth restructuring the adapter plan around
+- [ ] Write the disclaimer and decide its placement (first-run notice vs. persistent banner) before any public build ships
+- [ ] Add jurisdiction-wide default rules as a schema-level concept (distinct from block/zone-specific data) — needed for cases like Walnut, CA's unsigned citywide overnight-permit rule
+- [ ] ~~Prototype the crime-risk aggregation approach~~ — **paused pending [Discussion #1](https://github.com/inkxel/parkpulse/discussions/1)**, not a committed build item. See [ETHICS.md](ETHICS.md).

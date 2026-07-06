@@ -92,6 +92,22 @@ Given the "every city is its own integration" finding plus the national-shell re
 - **Lookup** — address/pin in, resolve jurisdiction via the national base layer, check the coverage registry, either return the combined read (supported) or show the honest "not yet covered — help us add it" state linking to the contribution guide (unsupported).
 - **No OSM dependency for regulation data** — OSM (if used at all) is a basemap layer only, per the earlier finding.
 
+## Platform sequencing (2026-07-05)
+
+**Web app first, deliberately — mobile is a later-phase goal, not a v1 target.** Matches CURB's own proven sequencing (PWA first, a native iOS wrapper added later once the core product was solid, not built alongside it). No reason to take on native-app complexity before the web version has proven the data model and found real users.
+
+## Visual design: color-coded parking status (2026-07-05)
+
+Visual inspiration: **onX Offroad** — color-coded trails by difficulty, plus BLM-land-based camping legality, both at a glance on a map you're actively navigating in the physical world. Same interaction shape as this project: "what's my status here, right now, without having to read anything."
+
+**One primary color axis, not one color scale for everything.** Sweeping, meters, and permits are different *kinds* of questions, not different values on the same scale, and shouldn't share one color key:
+
+- **Sweeping — the primary temporal axis.** 🟢 clear now (and not imminent) / 🟡 clear now, but a restriction starts soon / 🔴 restricted right now. This is the one with a genuine ticking clock, closest to onX's single-glance read. **Already proven, not a new idea** — this is CURB's own design language verbatim (`--green clear / --amber soon / --red now`), independently arrived at here too.
+- **Meters — a cost question, not a restriction.** Paying for a spot you haven't paid for isn't illegal, so folding it into red/green would state something false. Needs its own visual treatment (icon/badge), not a slot on the sweeping color scale.
+- **Permits — an eligibility gate, not a timing question.** The app usually can't know whether *this specific user* holds the right permit for *this specific zone*, so it's a flag ("permit zone — do you have one?"), not a temporal color. CURB reaches the same conclusion architecturally with a distinct `--meter permit-blue`, separate from its green/amber/red.
+- **Gray is already reserved** (coverage registry, above) for "this jurisdiction isn't covered at all." A block in a *covered* jurisdiction where one specific field is stale or uncertain needs a different treatment — a hatch pattern or a lighter shade of the relevant category's color, not solid gray — so "no data" and "data exists, treat with some skepticism" don't visually collapse into the same thing.
+- **Amber/yellow threshold is a tunable parameter, not a hardcoded constant.** ~2 hours is a reasonable starting point for sweeping, but different rule types may warrant different lead times — don't bake in one number everywhere.
+
 ## Trust, error reporting & disclaimer
 
 Three related pieces, all Tucker's additions (2026-07-05), all load-bearing for a project that tells people where they can legally park.

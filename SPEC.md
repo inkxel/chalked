@@ -95,12 +95,19 @@ These are the first few jurisdictions worth building real adapters for, to prove
 
 **San Francisco is deliberately not one of them** (2026-07-05) — CURB (curb.guide) already covers it exceptionally well, open source, actively maintained. Rebuilding it would be pure duplication; ParkPulse either shows SF as covered-by-a-linked-external-tool, or treats CURB's approach as a reference adapter rather than building one from scratch.
 
-Ranked by combined open-data coverage among jurisdictions with no comparable *open-source* tool, each with its known gap. **Re-check "unconfirmed" gaps via the dashboard-tracing method (above) before trusting them** — LA's sweeping and permit gaps both turned out to be wrong when actually checked.
-1. **Los Angeles** — now the strongest single candidate: sweeping (fresh, actively edited), meters (best-documented dataset of any city), crime (open), permits (open, real, but frozen since 2015 — disclose the staleness, don't hide it). sweep.la already covers LA + 4 neighbors but isn't confirmed open source — a real, open ParkPulse adapter for LA still has a clear reason to exist.
-2. **Chicago** — strong on sweeping/permits/crime; meters is the one real hole (private concessionaire, no open API — would need a scraper or an explicit "meters unknown here" state). No CURB/sweep.la-equivalent found — genuine open territory, but re-check before committing given the LA misses.
-3. **Seattle** — strong on meters/permits/crime; sweeping schedule not yet confirmed open — but given LA's misses, worth checking for a hidden ArcGIS dashboard before concluding it's actually absent.
-4. **NYC** — richest regulation + meter data of any city, but no permit-zone model to speak of — different rule shape entirely (alternate-side parking, not sweeping).
-5. **Washington DC** — solid permits + crime, but an entirely different seasonal-rule regime (snow/leaf season, no sweeping program).
+### Prioritization: data availability × population (soft weighting, not a hard cutoff)
+Data completeness alone isn't the whole story — a jurisdiction with clean data but few residents and light enforcement delivers less real value than a bigger, more aggressively-enforced one, even with a messier data gap. Population is a reasonable proxy for both "how many people this actually helps" and "how likely enforcement is real and worth tracking" (a city under ~10K residents plausibly has parking rules on the books that rarely get enforced; a city over ~500K almost certainly has a dedicated enforcement operation). Soft signal, not a strict cutoff — small towns aren't excluded from the map, just weighted lower for *which adapter to build next*.
+
+Convenient synergy: the same Census TIGER/Line source providing the national boundary layer also publishes population estimates for those same places — this ranking factor doesn't need a separate data source.
+
+Ranked by combined open-data coverage among jurisdictions with no comparable *open-source* tool, each with its known gap, population noted (rounded, city proper) since it now matters to the call. **Re-check "unconfirmed" gaps via the dashboard-tracing method (above) before trusting them** — LA's sweeping and permit gaps both turned out to be wrong when actually checked.
+1. **Los Angeles** (~3.9M) — the strongest combined candidate: real population *and* the most complete data. Sweeping (fresh, actively edited), meters (best-documented dataset of any city), crime (open), permits (open, real, but frozen since 2015 — disclose the staleness, don't hide it). sweep.la already covers LA + 4 neighbors but isn't confirmed open source — a real, open ParkPulse adapter for LA still has a clear reason to exist.
+2. **NYC** (~8.3M) — by far the largest population of any candidate, and the richest regulation + meter data of any city — but no permit-zone model to speak of, and a genuinely different rule shape (alternate-side parking, not sweeping) that's more architectural work than a drop-in adapter. Worth weighing seriously despite the gap, given the population is more than double LA's — NYC's alternate-side enforcement is also famously aggressive (real, high-volume citation activity), which is exactly the enforcement-intensity signal population is a proxy for.
+3. **Chicago** (~2.7M) — strong on sweeping/permits/crime; meters is the one real hole (private concessionaire, no open API — would need a scraper or an explicit "meters unknown here" state). No CURB/sweep.la-equivalent found — genuine open territory, but re-check before committing given the LA misses.
+4. **Seattle** (~750K) — strong on meters/permits/crime; sweeping schedule not yet confirmed open — but given LA's misses, worth checking for a hidden ArcGIS dashboard before concluding it's actually absent.
+5. **Washington DC** (~670K) — solid permits + crime, but an entirely different seasonal-rule regime (snow/leaf season, no sweeping program) and the smallest population of the group.
+
+**Read:** LA is the clean pick — high population, most complete data. NYC is the real judgment call — the highest population and enforcement-intensity signal by far, worth the extra architectural work the missing permit model and different rule shape demand, rather than defaulting to whichever jurisdiction merely has the tidiest data.
 
 ## Open questions
 - What does the "not covered yet" state actually look like — gray fill only, or a lighter hint of jurisdiction-level metadata (population, at least the boundary) even with zero regulation data? Zillow-style "estimate not available" implies some baseline info is still shown.
@@ -112,10 +119,10 @@ Ranked by combined open-data coverage among jurisdictions with no comparable *op
 - Update cadence and monitoring for portal schema drift — Chicago's meter scraper precedent (community-maintained, unofficial) suggests this is a real, recurring maintenance cost, not a one-time build.
 
 ## Next steps
-- [ ] Get the national base layer working first: Census TIGER/Line boundaries on a map, every jurisdiction resolvable from a pin/address, all shown as "unsupported" — this is the actual v1 milestone, before any single adapter
-- [ ] Design the coverage registry schema (per-jurisdiction status + per-category granularity)
+- [ ] Get the national base layer working first: Census TIGER/Line boundaries + population on a map, every jurisdiction resolvable from a pin/address, all shown as "unsupported" — this is the actual v1 milestone, before any single adapter
+- [ ] Design the coverage registry schema (per-jurisdiction status + per-category granularity + population, so a contributor-facing "most-needed" view can sort by population × missing coverage)
 - [ ] Write the CONTRIBUTING guide for adding a jurisdiction (dashboard-tracing method, common schema, worked example) — needed before asking anyone to help
 - [ ] Re-check Chicago and Seattle's data gaps using the dashboard-tracing method before trusting either "unconfirmed"/gap call
-- [ ] Build the first real adapter (Chicago or LA) to prove the schema and seed the map with real data, and to make the contribution guide's example concrete
-- [ ] Design the common schema with explicit per-category nullability — and geometry-shape tolerance (LA's routes are polygons, SF's blocks are line segments; the schema needs to handle both, not assume one)
+- [ ] Build the first real adapter — LA is the clean pick (population + most complete data); weigh NYC seriously too despite its permit-model gap, given its outsized population and enforcement intensity
+- [ ] Design the common schema with explicit per-category nullability and a "data as of" timestamp per category — and geometry-shape tolerance (LA's routes are polygons, SF's blocks are line segments; the schema needs to handle both, not assume one)
 - [ ] Prototype the crime-risk aggregation approach — this is the piece no existing tool (including CURB, sweep.la) does

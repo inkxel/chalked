@@ -18,7 +18,7 @@ All confirmed via each city's own open-data portal (Socrata or ArcGIS Open Data 
 | **San Francisco** | ✅ open | ✅ open (+ rate schedules) | ✅ open (RPP eligibility parcels) | ✅ open | Only city confirmed 4-for-4 — the obvious first launch city |
 | **Chicago** | ✅ open | ❌ gap | ✅ open | ✅ open | Meters run by a private concessionaire (Chicago Parking Meters LLC), no open API — historically scraped |
 | **NYC** | Folded into regs | ✅ open (richest reg + meter data of any city) | ❌ no real permit-zone model | ✅ open | Uses alternate-side-parking instead of a sweeping program; no citywide RPP like SF/DC/Chicago |
-| **Los Angeles** | ⚠️ fragmented | ✅ open (best-documented meter dataset anywhere) | ❌ no confirmed dataset | ✅ open | Sweeping data historically messy; own Mayor's Office/USC project called it a "consolidation" effort |
+| **Los Angeles** | ✅ open — corrected 2026-07-05 | ✅ open (best-documented meter dataset anywhere) | ❌ no confirmed dataset | ✅ open | Real, unauthenticated ArcGIS Feature Service, official LA Bureau of Street Services: `Posted_Street_Sweeping_Routes_Update` (`Route`/`Posted_Day`/`Posted_Time`/`Weeks`/`Odd_Even` fields, polygon geometry, actively edited). Earlier "fragmented" call was wrong — see correction below. |
 | **Seattle** | ❌ unconfirmed | ✅ open (unusually rich — historical paid-occupancy by block-minute since 2012) | ✅ open (RPZ) | ✅ open | |
 | **Washington DC** | N/A — different regime | ⚠️ unconfirmed | ✅ open | ✅ open | No sweeping program at all — snow-emergency/leaf-season rules instead |
 | **Boston** | ⚠️ unconfirmed | ✅ open | ⚠️ unconfirmed | — | |
@@ -48,6 +48,13 @@ Missed in the initial research pass (created 2026-06-08, likely too recent for t
 
 **This changes the plan, not just the footnote.** Building "another SF parking app" now would be pure duplication of something already excellent and current. San Francisco drops as ParkPulse's launch city — see Launch cities below. CURB's GPS-matched-citation technique for inferring *real* enforcement timing (not just posted schedule) is worth treating as the bar to clear in whichever city ParkPulse actually builds first, if that city's own citation data supports the same trick.
 
+### Correction (2026-07-05): LA street sweeping is real and queryable — the earlier "fragmented" call was wrong
+Tucker found LA's public sweeping lookup (streets.lacity.gov) and an ArcGIS dashboard, and asked directly whether "no open API" was actually true. It wasn't. Traced the dashboard (`Sweeping Routes in LA`, official LA Bureau of Street Services account, 550K+ views) back through its web map to the actual backing service: **`Posted_Street_Sweeping_Routes_Update`**, a public, unauthenticated ArcGIS Feature Service — `https://services1.arcgis.com/PTh9WC0Sf2WS7AAq/arcgis/rest/services/Posted_Street_Sweeping_Routes_Update/FeatureServer/0`. Confirmed live with a real query: fields for `Route`, `Posted_Day`, `Posted_Time`, `Weeks` (1&3 vs 2&4), `Odd_Even` (side of street), `Maint_District`; polygon geometry (routes as zones, not per-block line segments like SF); actively edited (`last_edited_date` tracked).
+
+**Methodology lesson, worth applying to every remaining candidate city:** a lot of real city GIS data isn't listed on a clean developer-facing "open data portal" page — it's the backing service behind a public citizen-facing ArcGIS **dashboard** or web map, discoverable by pulling the dashboard's ArcGIS item ID and walking `item → web map → operationalLayers[].url`. Socrata-based portals (SF, Chicago, NYC) advertise their APIs directly; ArcGIS-based cities often don't, but the data is still there. Chicago and Seattle's "unconfirmed" sweeping gaps should be re-checked this way, not taken as confirmed absent, before finalizing a launch city.
+
+**LA is back in as a candidate**, now 3-of-4 (sweeping ✅, meters ✅ best-documented anywhere, crime ✅, permits ❌ no confirmed dataset — LA doesn't lean on residential permit parking the way SF/DC/Chicago do). No CURB-equivalent found for LA specifically — worth a dedicated check before committing, per the CURB lesson above.
+
 ## Architecture (draft)
 Given the "every city is its own integration" finding, the shape is a **pluggable per-city adapter behind a common schema** — CurbLR's original intent, just DIY'd rather than waiting on city-side adoption of a standard that stalled.
 
@@ -60,11 +67,12 @@ Given the "every city is its own integration" finding, the shape is a **pluggabl
 ## Launch cities (candidates, not final)
 **San Francisco removed as launch candidate** (2026-07-05) — CURB (curb.guide) already covers it exceptionally well, open source, actively maintained. Rebuilding it would be pure duplication. ParkPulse either skips SF entirely (link out to CURB for SF users) or, if included later, treats CURB's dataset/approach as a reference adapter rather than building one from scratch.
 
-Ranked by combined open-data coverage among cities with no comparable existing tool, each with its known gap:
-1. **Chicago** — strong on sweeping/permits/crime; meters is the one real hole (private concessionaire, no open API — would need a scraper or an explicit "meters unknown here" state). No CURB-equivalent found for Chicago — genuine open territory.
-2. **Seattle** — strong on meters/permits/crime; sweeping schedule not confirmed open. No CURB-equivalent found.
-3. **NYC** — richest regulation + meter data of any city, but no permit-zone model to speak of — different rule shape entirely (alternate-side parking, not sweeping). Worth a fresh prior-art check specifically for NYC before committing — CURB's existence for SF means other cities should be re-checked, not assumed clear.
-4. **Washington DC** — solid permits + crime, but an entirely different seasonal-rule regime (snow/leaf season, no sweeping program).
+Ranked by combined open-data coverage among cities with no comparable existing tool, each with its known gap. **Re-check "unconfirmed" gaps via the dashboard-tracing method (above) before trusting them** — LA's sweeping gap turned out to be wrong when actually checked.
+1. **Chicago** — strong on sweeping/permits/crime; meters is the one real hole (private concessionaire, no open API — would need a scraper or an explicit "meters unknown here" state). No CURB-equivalent found for Chicago — genuine open territory, but re-check before committing.
+2. **Los Angeles** — sweeping confirmed open 2026-07-05 (see correction above), meters best-documented anywhere, crime open; permits is the one real gap (no confirmed dataset, and LA doesn't lean on residential permit parking the way SF/DC/Chicago do). No CURB-equivalent found — worth a dedicated check.
+3. **Seattle** — strong on meters/permits/crime; sweeping schedule not yet confirmed open — but given the LA miss, worth checking for a hidden ArcGIS dashboard before concluding it's actually absent.
+4. **NYC** — richest regulation + meter data of any city, but no permit-zone model to speak of — different rule shape entirely (alternate-side parking, not sweeping).
+5. **Washington DC** — solid permits + crime, but an entirely different seasonal-rule regime (snow/leaf season, no sweeping program).
 
 ## Open questions
 - **Before picking a first city, re-check for a CURB-equivalent there specifically.** CURB's existence (found by Tucker directly, missed by the initial research pass since it's <1 month old) means "no prior art found" can't be trusted without a fresh, dedicated check per candidate city — search indexes lag new repos.
@@ -75,7 +83,8 @@ Ranked by combined open-data coverage among cities with no comparable existing t
 - Update cadence and monitoring for city portal schema drift — Chicago's meter scraper precedent (community-maintained, unofficial) suggests this is a real, recurring maintenance cost, not a one-time build.
 
 ## Next steps
-- [ ] Re-check prior art specifically for Chicago and Seattle before committing to either as launch city — don't repeat the SF miss
-- [ ] Pick the first city from the remaining candidates once that check is done
-- [ ] Design the common schema with explicit per-category nullability from day one
+- [ ] Re-check Chicago and Seattle's data gaps using the dashboard-tracing method (walk ArcGIS item → web map → operationalLayers URLs, not just search for a developer-facing open-data page) before trusting either "unconfirmed"/"gap" call
+- [ ] Re-check prior art specifically for Chicago, LA, and Seattle before committing to a launch city — don't repeat the SF miss
+- [ ] Pick the first city from the remaining candidates once both checks are done
+- [ ] Design the common schema with explicit per-category nullability from day one — and geometry-shape tolerance (LA's routes are polygons, SF's blocks are line segments; the common schema needs to handle both, not assume one)
 - [ ] Prototype the crime-risk aggregation approach — this is the piece no existing tool (including CURB) does

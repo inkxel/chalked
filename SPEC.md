@@ -8,7 +8,7 @@ Address or pin in, full street-parking picture out: street sweeping schedule, ti
 ## Research finding, up front: no national standard exists
 Researched before writing any of the rest of this spec, because the premise ("this info must be publicly available") needed a real answer, not an assumption.
 
-**No consumer-facing national data format for curb/parking regulation exists.** The closest attempt, **CurbLR** (Coord/SharedStreets, ~2019), is the right idea — human-readable, linear-referenced curb regulation data — but it's stalled: last code commit July 2024, no registry of live city adoptions, only demo conversions (Portland, part of LA). **SharedStreets**, the geometry layer under it, is more stalled (last push Feb 2023). The one actively-maintained standard today, the **Open Mobility Foundation's Curb Data Specification (CDS)**, is real and current — but it's built for B2B curb management (dockless vehicles, loading-zone occupancy between cities and mobility operators), not a "can I park here" consumer lookup. There's no pipeline from CDS into a dataset this project could just query.
+**No consumer-facing national data format for curb/parking regulation exists.** The closest attempt, **CurbLR** (Coord/SharedStreets, ~2019), is the right idea — human-readable, linear-referenced curb regulation data — but it's stalled: last code commit July 2024, no registry of live city adoptions, only demo conversions (Portland, part of LA). **SharedStreets**, the geometry layer under it, is more stalled (last push Feb 2023). The one actively-maintained standard today, the **Open Mobility Foundation's Curb Data Specification (CDS)**, is real and current, built for B2B curb management (dockless vehicles, loading-zone occupancy between cities and mobility operators). **Update (2026-07-05):** it has more real adoption than initially assessed — see "National vendor/standard landscape" below. Worth a dedicated follow-up before assuming it's a dead end.
 
 **Conclusion: every city is its own integration.** No shortcut around that.
 
@@ -68,6 +68,24 @@ Los Angeles is now the strongest single candidate for a first adapter: sweeping 
 Tucker found this too. **sweep.la** ("Sweep LA") covers not just the city of LA but **5 separate municipalities**: Los Angeles, Santa Monica, Glendale, West Hollywood, and Pasadena — each running its own independent sweeping program, aggregated into one lookup. Multilingual (en/es/ko/ru/tl), PWA, "as-is, not affiliated with the City of Los Angeles." No GitHub link found on the site — not confirmed open source, unlike CURB.
 
 Real signal: crossing city boundaries is already happening at solo/small-team scale in this exact space. Two independent single-city-metro tools (CURB, sweep.la) both exist and both work. The gap they leave — nationwide reach, open source, and the crime-risk overlay — is still wide open.
+
+## National vendor/standard landscape (2026-07-05): is there a shortcut at the vendor layer?
+
+Tucker's question, worth researching properly rather than guessing: is there a national-scale parking vendor or platform — meter payment company, permit software, anything — whose data would unlock many cities at once, the way Socrata/ArcGIS consolidate GIS hosting or Municode/American Legal consolidate legal-code hosting?
+
+**Short answer: no free shortcut exists. Every major vendor gates its data behind a commercial relationship, not a self-serve API.**
+
+- **Meter payment vendors** (ParkMobile, Passport, PayByPhone, Flowbird, IPS Group) all have *an* API. None is open. **Passport** is the widest — its Parking Rights API normalizes rates/rules/restrictions across "hundreds of cities" (20,000+ zones claimed) into one feed — but it's partner-gated, built for OEMs and wayfinding apps that sign a business-dev agreement, not something ParkPulse could just plug into.
+- **Real-time spot occupancy still doesn't meaningfully exist nationally.** The SFpark sensor program (retired 2014) never really came back at scale. What exists now — computer-vision curb cameras (Automotus, Cleverciti), INRIX's predictive modeling — covers a couple dozen cities at most, mostly loading zones for the camera approach; even INRIX's own real (non-predicted) occupancy data only covers 13 of its 126 US markets. Not a near-term feature to plan around.
+- **Residential permit software** (T2 Systems, gtechna, iParq, Passport, Unity5, CityView) consolidates *operationally* — a handful of vendors run many cities' citizen-facing permit portals — but none of them publish open zone-boundary data. They're enforcement/citizen tools, not data publishers. Where permit-zone data is public at all, it's because an individual city's GIS team put it on their own portal — same city-by-city pattern as everything else in this spec.
+- **Citation-processing vendors** (Duncan Solutions, Complus Data Innovations — 200+ municipal clients across 25 states, Conduent) also consolidate operationally with zero open data — billing/collections back-ends, not datasets.
+- **No federal/DOT standard exists** for municipal on-street parking, confirmed — parking is genuinely hyper-local governance, not federally standardized the way some transportation data is.
+
+**The one real exception, worth chasing directly:** the **Curb Data Specification (CDS)**, mentioned earlier as B2B-focused and written off — turns out it has real, if early, adoption: roughly **11 US cities**, including **LA, SF, DC, and Seattle** — four cities already on this project's candidate list. CDS is a genuinely open, free, GTFS-like standard (not a gated vendor product), so if these cities' actual CDS feeds cover sweeping/permit-relevant data — not just the loading-zone/curb-use data CDS was originally built for (dockless vehicles, rideshare) — that's a real shortcut: one schema parser instead of four bespoke per-city adapters. **Scope unconfirmed** — needs a direct check before assuming it solves anything (see Next Steps).
+
+**Worth knowing about, not free:** **Parkopedia** licenses static rate/rule data across 1,000+ cities/towns via one paid API — functionally the closest "integrate once" product that actually exists, just commercial, with per-city freshness unverified.
+
+**Verdict, matching the per-city finding:** every city is still effectively its own integration, just with a smaller menu of vendors behind the curtain. The CDS lead is the one thing worth checking before accepting that conclusion fully.
 
 ## Architecture reframe (2026-07-05): national map shell from day one, not sequential launch cities
 
@@ -179,3 +197,4 @@ Ranked by combined open-data coverage among jurisdictions with no comparable *op
 - [ ] Add jurisdiction-wide default rules as a schema-level concept (distinct from block/zone-specific data) — needed for cases like Walnut, CA's unsigned citywide overnight-permit rule
 - [ ] Extend the error-report pipeline to accept "my city has an unsigned rule like X" as its own report type, feeding targeted per-city code lookups instead of blind nationwide scraping
 - [ ] Check whether each first-adapter city's municipal code is hosted on Municode/American Legal/General Code before assuming a bespoke scrape is needed
+- [ ] **High-priority:** check whether LA, SF, DC, or Seattle's actual CDS (Curb Data Specification) feeds cover sweeping/permit data, or only loading-zone/curb-use data — if any do, that's a real multi-city shortcut worth restructuring the adapter plan around

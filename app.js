@@ -64,6 +64,21 @@ function colorFor(level) {
   return { green: "#2e7d32", amber: "#d99e00", red: "#c62828" }[level];
 }
 
+// Debug-only clock override for validating that status coloring actually differentiates
+// (?debugTime=2026-07-06T08:30:00-07:00), instead of trusting it because a live screenshot
+// happened to be all-green. Never used for real users; a visible banner marks it clearly.
+const DEBUG_TIME = new URLSearchParams(location.search).get("debugTime");
+function getNow() {
+  return DEBUG_TIME ? new Date(DEBUG_TIME) : new Date();
+}
+if (DEBUG_TIME) {
+  const banner = document.createElement("div");
+  banner.style.cssText =
+    "background:#fff3cd;color:#7a5c00;padding:0.4rem 1rem;font-size:0.8rem;text-align:center;border-bottom:1px solid #e0c46c;";
+  banner.textContent = `⚠ Debug clock active — simulating ${getNow().toString()}, not real time.`;
+  document.body.insertBefore(banner, document.body.firstChild);
+}
+
 const map = L.map("map").setView([34.0522, -118.2437], 11);
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "&copy; OpenStreetMap contributors",
@@ -91,7 +106,7 @@ function styleFeature(now) {
 
 function refreshColors() {
   if (!geoLayer) return;
-  const now = new Date();
+  const now = getNow();
   geoLayer.setStyle(styleFeature(now));
 }
 
@@ -99,12 +114,12 @@ fetch("data/la-sweeping.geojson")
   .then((r) => r.json())
   .then((data) => {
     sweepingData = data;
-    const now = new Date();
+    const now = getNow();
     geoLayer = L.geoJSON(data, {
       style: styleFeature(now),
       onEachFeature: (feature, layer) => {
         layer.on("click", () => {
-          const status = statusFor(new Date(), feature.properties);
+          const status = statusFor(getNow(), feature.properties);
           renderPanel(feature.properties, status);
         });
       },
@@ -169,7 +184,7 @@ function searchAddress() {
           '<span class="dot green"></span>No posted sweeping zone found at this address (or it\'s outside the covered area).';
         return;
       }
-      renderPanel(hit.properties, statusFor(new Date(), hit.properties));
+      renderPanel(hit.properties, statusFor(getNow(), hit.properties));
     })
     .catch((err) => {
       statusPanel.textContent = "Address lookup failed: " + err.message;

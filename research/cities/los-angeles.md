@@ -16,6 +16,10 @@ Confirmed live with a real query — fields: `Route`, `Posted_Day`, `Posted_Time
 
 **Why the earlier "fragmented" call was wrong:** LA doesn't advertise this the way Socrata-based portals (SF, Chicago, NYC) advertise their APIs directly — it's the backing service behind a citizen-facing dashboard, not a developer-facing open-data listing. The data was there the whole time; nobody had traced it yet. This finding is what prompted the [dashboard-tracing method](../dashboard-tracing-method.md) write-up.
 
+**CDS is not an alternative path here — checked and closed out (2026-07-06).** LA's actual CDS implementation ("Code the Curb," LADOT) is a downtown-only pilot for commercial loading zones via the CurbIQ vendor platform, gated behind OAuth2 partner credentials, with no sweeping or permit data anywhere in it. Full finding in [national-vendor-landscape.md](../national-vendor-landscape.md). The ArcGIS Feature Service above remains the confirmed real source.
+
+**Worth cross-checking:** LA's open-data portal may also publish sweeping data directly via Socrata — dataset id `krk7-ayq2`, "Posted Street Sweeping Routes," `data.lacity.org` — found incidentally during the CDS check, not yet verified against the ArcGIS Feature Service above (same underlying data exposed two ways, or a genuinely separate source — unknown until checked).
+
 ## Permits
 
 Tucker found LA's Preferential Parking Districts (PPD) dataset: `data.lacity.org/.../LADOT-Preferential-Parking-Districts-PPD-/2ckn-xmjp`. Same pattern as the sweeping dashboard — `2ckn-xmjp` is a Socrata visualization wrapper, not the real dataset. Traced it (Socrata's version of the same tracing instinct) to the actual backing table:

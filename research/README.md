@@ -44,4 +44,5 @@ Every city file should be linked from its state's file, and every state file sho
 **Methods & cross-city landscape**
 - [Dashboard-tracing method](dashboard-tracing-method.md) — how to find real data hiding behind a public-facing ArcGIS dashboard
 - [Municipal code hosting & unsigned rules](municipal-code-hosting.md) — the Walnut, CA case, and where to look for code-only rules
-- [National vendor & standard landscape](national-vendor-landscape.md) — meter vendors, CDS, Parkopedia, and why none of them are a free shortcut (except maybe one)
+- [National vendor & standard landscape](national-vendor-landscape.md) — meter vendors, CDS (checked and closed out), Parkopedia
+- [City hub-page & aggregator scan](city-hub-scan.md) — broad 29-city discovery pass: prior art (ParkUsher), confirmed vendor-by-city map, and the structural finding that street sweeping is almost universally split from meters/permits by department

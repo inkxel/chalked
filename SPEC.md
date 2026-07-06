@@ -8,7 +8,7 @@ Address or pin in, full street-parking picture out: street sweeping schedule, ti
 ## Research finding, up front: no national standard exists
 Researched before writing any of the rest of this spec, because the premise ("this info must be publicly available") needed a real answer, not an assumption.
 
-**No consumer-facing national data format for curb/parking regulation exists.** The closest attempt, **CurbLR** (Coord/SharedStreets, ~2019), is the right idea — human-readable, linear-referenced curb regulation data — but it's stalled: last code commit July 2024, no registry of live city adoptions, only demo conversions (Portland, part of LA). **SharedStreets**, the geometry layer under it, is more stalled (last push Feb 2023). The one actively-maintained standard today, the **Open Mobility Foundation's Curb Data Specification (CDS)**, is real and current, built for B2B curb management (dockless vehicles, loading-zone occupancy between cities and mobility operators). **Update (2026-07-05):** it has more real adoption than initially assessed — see "National vendor/standard landscape" below. Worth a dedicated follow-up before assuming it's a dead end.
+**No consumer-facing national data format for curb/parking regulation exists.** The closest attempt, **CurbLR** (Coord/SharedStreets, ~2019), is the right idea — human-readable, linear-referenced curb regulation data — but it's stalled: last code commit July 2024, no registry of live city adoptions, only demo conversions (Portland, part of LA). **SharedStreets**, the geometry layer under it, is more stalled (last push Feb 2023). The one actively-maintained standard today, the **Open Mobility Foundation's Curb Data Specification (CDS)**, is real and current, built for B2B curb management (dockless vehicles, loading-zone occupancy between cities and mobility operators). **Checked directly and closed out (2026-07-06):** confirmed scoped to small downtown loading-zone/micromobility pilots in every city checked (LA, Seattle, DC) — no sweeping or permit data, no open public feed. See "National vendor/standard landscape" below.
 
 **Conclusion: every city is its own integration.** No shortcut around that.
 
@@ -44,7 +44,9 @@ Full findings, sources, and the reusable method live in `research/` — this sec
 
 ## National vendor/standard landscape: is there a shortcut at the vendor layer?
 
-Short answer: no free shortcut exists — every major meter/permit/citation vendor gates its data behind a commercial relationship, not a self-serve API, and real-time spot occupancy doesn't meaningfully exist nationally (the SFpark sensor era never really returned at scale). **One real exception worth chasing:** the Curb Data Specification (CDS) has real adoption in ~11 cities including LA, SF, DC, and Seattle — four cities already on Chalked's candidate list. If their actual feeds cover sweeping/permit data (scope unconfirmed), that's a real multi-city shortcut. Full research, vendor-by-vendor, in **[research/national-vendor-landscape.md](research/national-vendor-landscape.md)**.
+Short answer: no free shortcut exists — every major meter/permit/citation vendor gates its data behind a commercial relationship, not a self-serve API, and real-time spot occupancy doesn't meaningfully exist nationally (the SFpark sensor era never really returned at scale). **The one lead worth chasing (CDS) has been checked directly and closed out (2026-07-06):** confirmed scoped to small downtown loading-zone/micromobility pilots in LA, Seattle, and DC — no shortcut for sweeping or permit data anywhere. The per-city adapter approach already in use is confirmed as the right path. Full research, vendor-by-vendor, in **[research/national-vendor-landscape.md](research/national-vendor-landscape.md)**.
+
+A broader 29-city discovery scan (2026-07-06, see **[research/city-hub-scan.md](research/city-hub-scan.md)**) confirmed the core niche is real: no city outside LA/SF has a comprehensive independent aggregator, meter vendors cluster into a handful of players (ParkMobile and Flowbird dominant), and — the sharpest finding — street sweeping is almost universally split from meters/permits by department, regardless of region, which is itself strong evidence for the standardization-advocacy framing in the README. One closest-analog prior-art tool surfaced (ParkUsher, multi-city) worth investigating directly, and one strong new adapter candidate (San Diego, confirmed real open sweeping dataset).
 
 ## Architecture reframe (2026-07-05): national map shell from day one, not sequential launch cities
 
@@ -147,9 +149,15 @@ Plain-English version of how everything in `research/` actually becomes somethin
 
 ## Next steps
 
-**Immediate — one research check, then build:**
-1. [ ] **Do this first:** check whether LA's actual CDS (Curb Data Specification) feed covers sweeping/permit data, or only loading-zone/curb-use data — determines whether the first adapter parses a standard feed or hand-codes against the ArcGIS service already found
-2. [ ] Build the thin vertical slice (see Data pipeline, above): national boundary layer with LA marked supported and everywhere else gray, one real LA sweeping adapter, basic address/pin lookup, sweeping's green/amber/red status only. Nothing else blocks on this — it validates the whole shape end to end.
+**Immediate:**
+1. [x] ~~Check whether LA's actual CDS feed covers sweeping/permit data~~ — **done (2026-07-06): confirmed no.** CDS is scoped to downtown loading-zone pilots in LA/Seattle/DC, no open public feed either way. The ArcGIS approach already found is the confirmed path. See [research/national-vendor-landscape.md](research/national-vendor-landscape.md).
+2. [ ] Cross-check LA's possible second sweeping source (Socrata `krk7-ayq2`) against the ArcGIS Feature Service already confirmed — same data two ways, or genuinely separate?
+3. [ ] Build the thin vertical slice (see Data pipeline, above): national boundary layer with LA marked supported and everywhere else gray, one real LA sweeping adapter, basic address/pin lookup, sweeping's green/amber/red status only. Nothing else blocks on this — it validates the whole shape end to end.
+
+**From the 29-city broad scan (2026-07-06, see [research/city-hub-scan.md](research/city-hub-scan.md)):**
+- [ ] Investigate ParkUsher directly (architecture, open-source status, data sourcing) — the closest prior-art analog to CURB/sweep.la found anywhere, covering Boston/NYC/Seattle/SF and others
+- [ ] Consider San Diego as an addition to the first-adapter candidate set — confirmed real, open sweeping dataset, not on the original 5-city list
+- [ ] When designing the common schema (below), make sure "this category doesn't meaningfully apply here" (e.g. sweeping in most Sunbelt cities) is representable distinctly from "no data yet"
 
 **After the slice exists, roughly in this order:**
 - [ ] Design the coverage registry schema (per-jurisdiction status + per-category granularity + population, so a contributor-facing "most-needed" view can sort by population × missing coverage)

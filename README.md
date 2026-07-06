@@ -22,6 +22,8 @@ Every state, alphabetically, with at least its biggest city listed — so you ca
 
 Most rows below say "not yet researched" — that's the honest current state, not a bug. That gap is the point (see "Get involved" above). A handful of "biggest city" calls below are genuinely close (Alabama, Missouri, South Carolina) — flagged where that's the case rather than stated as certain.
 
+A broad discovery scan (2026-07-06, see [research/city-hub-scan.md](research/city-hub-scan.md)) found official hub pages and named meter vendors for many cities below — that's real, but shallower than the confirmed-dataset research the checkmarked cities have. Treat "hub found, vendor named" as a lead worth deep-diving, not the same as a confirmed open dataset.
+
 ---
 
 **Alabama** — Huntsville *(largest by recent population estimates; close with Birmingham — flagging the uncertainty)* — not yet researched.
@@ -36,8 +38,9 @@ Most rows below say "not yet researched" — that's the honest current state, no
 - **Los Angeles** — Sweeping: ✅ [LADOT Posted Street Sweeping Routes](https://services1.arcgis.com/PTh9WC0Sf2WS7AAq/arcgis/rest/services/Posted_Street_Sweeping_Routes_Update/FeatureServer/0), actively edited. Meters: ✅ [LADOT Metered Parking Inventory & Policies](https://data.lacity.org/Transportation/LADOT-Metered-Parking-Inventory-Policies/s49e-q6j2) — best-documented meter dataset of any city checked. Permits: ⚠️ [Preferential Parking Districts](https://data.lacity.org/resource/s3st-6nwi.json), real but not updated since 2015-08-13. Crime: ✅ [Crime Data 2020–Present](https://data.lacity.org/Public-Safety/Crime-Data-from-2020-to-Present/2nrs-mtv8). → [Issue #2](https://github.com/inkxel/chalked/issues/2)
 - San Francisco — Sweeping: ✅ [DataSF `yhqp-riqs`](https://data.sfgov.org/resource/yhqp-riqs.json). Meters: ✅ [DataSF `8vzz-qzz9`](https://data.sfgov.org/resource/8vzz-qzz9.json). Permits/RPP: ⚠️ [DataSF `hi6h-neyh`](https://data.sfgov.org/resource/hi6h-neyh.json) — SFMTA's own 2017 set, flagged by the city as not comprehensively updated. Crime: ✅ [DataSF `ab4h-6ztd`](https://data.sfgov.org/resource/ab4h-6ztd.json). **Already excellently covered by [CURB](https://curb.guide)** — no Chalked adapter needed.
 - Glendale, Pasadena, Santa Monica, West Hollywood — Sweeping: 🔍 via [sweep.la](https://sweep.la), not independently sourced. Meters/Permits/Crime: not yet researched.
+- **San Diego** *(new candidate, found via broad scan)* — Sweeping: ✅ confirmed real ArcGIS map + open dataset at [data.sandiego.gov](https://data.sandiego.gov/datasets/street-sweeping-schedule/) — best-documented open data found in that scan's West-region batch. Meters/Permits/Crime: not yet researched.
 
-**Colorado** — Denver — not yet researched.
+**Colorado** — Denver — hub found (denvergov.org), vendor **ParkMobile**; sweeping page discoverable, city pushes a native app (Pocketgov) for sweeping alerts. No independent aggregator. Datasets not yet independently confirmed.
 
 **Connecticut** — Bridgeport — not yet researched.
 
@@ -45,15 +48,15 @@ Most rows below say "not yet researched" — that's the honest current state, no
 
 **Florida** — Jacksonville — not yet researched.
 
-**Georgia** — Atlanta — not yet researched.
+**Georgia** — Atlanta — hub found (atldot.atlantaga.gov), vendor **ATLPlus** for meters. No sweeping mentioned anywhere on the page — possibly not a real enforcement category here. No independent aggregator. Datasets not yet independently confirmed.
 
 **Hawaii** — Honolulu — not yet researched.
 
 **Idaho** — Boise — not yet researched.
 
-**Illinois** — **Chicago** — Sweeping: ✅ [Street Sweeping Schedule 2025](https://data.cityofchicago.org/Sanitation/Street-Sweeping-Schedule-2025/a2xx-z2ja). Permits: ✅ [Permit Parking Zones](https://data.cityofchicago.org/Transportation/Permit-Parking-Zones/qiag-khha). Meters: ❌ private concessionaire, no open API (unofficial scraper: [stevevance/Chicago-Parking-Meters](https://github.com/stevevance/Chicago-Parking-Meters)). Crime: ✅ [Motor Vehicle Theft](https://data.cityofchicago.org/Public-Safety/motor-vehicle-theft/7ac4-d9tk). → [Issue #4](https://github.com/inkxel/chalked/issues/4)
+**Illinois** — **Chicago** — Sweeping: ✅ [Street Sweeping Schedule 2025](https://data.cityofchicago.org/Sanitation/Street-Sweeping-Schedule-2025/a2xx-z2ja). Permits: ✅ [Permit Parking Zones](https://data.cityofchicago.org/Transportation/Permit-Parking-Zones/qiag-khha). Meters: ❌ private concessionaire, no open API (unofficial scraper: [stevevance/Chicago-Parking-Meters](https://github.com/stevevance/Chicago-Parking-Meters)). Crime: ✅ [Motor Vehicle Theft](https://data.cityofchicago.org/Public-Safety/motor-vehicle-theft/7ac4-d9tk). Independent aggregator: **[We The Sweeple](https://wethesweeple.com)**, confirmed open source ([github.com/srobbin/sweeparoundus](https://github.com/srobbin/sweeparoundus)) — sweeping alerts/calendar only, not comprehensive. → [Issue #4](https://github.com/inkxel/chalked/issues/4)
 
-**Indiana** — Indianapolis — not yet researched.
+**Indiana** — Indianapolis — decent hub (parkindy.info) supporting both **ParkMobile and Flowbird**. Sweeping entirely separate, not linked. No independent aggregator. Datasets not yet independently confirmed.
 
 **Iowa** — Des Moines — not yet researched.
 
@@ -61,27 +64,27 @@ Most rows below say "not yet researched" — that's the honest current state, no
 
 **Kentucky** — Louisville — not yet researched.
 
-**Louisiana** — New Orleans — not yet researched.
+**Louisiana** — New Orleans — decent hub at nola.gov, spread across ~4 pages, vendor **ParkMobile**. Oddly, sweeping is filed under "Trash & Recycling," not "Parking," in the city's own site structure. No independent aggregator. Datasets not yet independently confirmed.
 
 **Maine** — Portland — not yet researched.
 
-**Maryland** — Baltimore — not yet researched.
+**Maryland** — Baltimore — Parking Authority hub found; notably meters payable via **three vendor apps simultaneously** (Flowbird, ParkMobile, PayByPhone). Sweeping owned entirely separately by the Dept of Public Works. No independent aggregator. Datasets not yet independently confirmed.
 
-**Massachusetts** — **Boston** — Meters: ✅ [Parking Meters (BostonMaps)](https://bostonopendata-boston.opendata.arcgis.com/maps/boston::parking-meters). Sweeping/Permits/Crime: not yet independently confirmed.
+**Massachusetts** — **Boston** — Meters: ✅ [Parking Meters (BostonMaps)](https://bostonopendata-boston.opendata.arcgis.com/maps/boston::parking-meters). Sweeping/Permits/Crime: not yet independently confirmed. Independent aggregator found: **ParkUsher** (multi-city — Boston, NYC, Seattle, SF, and more) — closest analog to CURB found anywhere in the broad scan, worth investigating directly. Official hub (Boston.gov Parking Clerk page) is one of the tidiest found nationally — permits, sweeping-season dates, and the ParkBoston app all from one page.
 
-**Michigan** — Detroit — not yet researched.
+**Michigan** — Detroit — reasonably consolidated hub (parkdetroit.us), vendor **Flowbird**. Sweeping schedule page looks stale (dated 2022) — a real documentation gap. No independent aggregator. Datasets not yet independently confirmed.
 
-**Minnesota** — Minneapolis — not yet researched.
+**Minnesota** — Minneapolis — best-organized official hub found in the Midwest scan, including an ArcGIS sweeping map. Vendor **Flowbird** (switched 2023). Caution: local news reported phishing scam ads mimicking the official MPLS Parking app. No independent aggregator. Datasets not yet independently confirmed.
 
 **Mississippi** — Jackson — not yet researched.
 
-**Missouri** — Kansas City *(largest by recent population estimates; close with St. Louis — flagging the uncertainty)* — not yet researched.
+**Missouri** — Kansas City *(largest by recent population estimates; close with St. Louis — flagging the uncertainty)* — weakest documentation found in the Midwest scan. Payment fragmented across three concurrent vendors (Park KC, ParkMobile, PayByPhone). No sweeping info surfaced on the official site at all, no independent aggregator — a strong Chalked candidate precisely because so little exists.
 
 **Montana** — Billings — not yet researched.
 
 **Nebraska** — Omaha — not yet researched.
 
-**Nevada** — Las Vegas — not yet researched.
+**Nevada** — Las Vegas — meter vendors **Flowbird + ParkWhiz** (the only scanned city on neither ParkMobile/Passport/PayByPhone). Sweeping is a buried, unlinked PDF — and the separate municipality of North Las Vegas has its own page, a real confusion trap for scraping "Las Vegas." No independent aggregator. Datasets not yet independently confirmed.
 
 **New Hampshire** — Manchester — not yet researched.
 
@@ -95,13 +98,13 @@ Most rows below say "not yet researched" — that's the honest current state, no
 
 **North Dakota** — Fargo — not yet researched.
 
-**Ohio** — Columbus — not yet researched.
+**Ohio** — Columbus — hub found (parkcolumbus.com), vendor **ParkMobile**. Permits and sweeping live on two separate, uncross-linked sites. No independent aggregator. Datasets not yet independently confirmed.
 
 **Oklahoma** — Oklahoma City — not yet researched.
 
-**Oregon** — Portland — not yet researched.
+**Oregon** — Portland — well-built official hub; meter app "Parking Kitty" is a **Passport** white label. Sweeping page exists but is actively changing — PBOT relaunches residential sweeping July 1, 2026, worth re-checking after that. No independent aggregator. *(Note: "Portland, Maine" pollutes search results for this city — a real scraping trap, see [research/city-hub-scan.md](research/city-hub-scan.md).)*
 
-**Pennsylvania** — Philadelphia — not yet researched.
+**Pennsylvania** — Philadelphia — split across two agencies: Philadelphia Parking Authority (meters via ParkMobile-powered meterUP app, permits) vs. Streets/Sanitation (sweeping, own live tracker StreetSmartPHL) — no shared hub. No independent aggregator beyond a generic SpotAngels map. Datasets not yet independently confirmed.
 
 **Rhode Island** — Providence — not yet researched.
 
@@ -109,9 +112,9 @@ Most rows below say "not yet researched" — that's the honest current state, no
 
 **South Dakota** — Sioux Falls — not yet researched.
 
-**Tennessee** — Nashville — not yet researched.
+**Tennessee** — Nashville — an unofficial FAQ site (nashfaq.com) exists just to explain which parking app to use — a signal the official info is scattered. Real sweeping enforcement only started 2025 (citations Aug, towing Oct), run through a separate "Waste Wizard" tool, not the ParkMobile-based parking hub. No independent aggregator. Datasets not yet independently confirmed.
 
-**Texas** — Houston — not yet researched.
+**Texas** — Houston — solid hub (houstontx.gov/parking), vendor **ParkMobile**. No sweeping-based restriction system found at all — Houston doesn't appear to run CA-style sweeping/towing. No independent aggregator. Datasets not yet independently confirmed. *(Dallas, Austin, San Antonio also scanned — see [research/city-hub-scan.md](research/city-hub-scan.md); similar pattern of little-to-no sweeping enforcement across Sunbelt cities generally.)*
 
 **Utah** — Salt Lake City — not yet researched.
 
@@ -123,7 +126,7 @@ Most rows below say "not yet researched" — that's the honest current state, no
 
 **West Virginia** — Charleston — not yet researched.
 
-**Wisconsin** — Milwaukee — not yet researched.
+**Wisconsin** — Milwaukee — best independent find of the Midwest scan: **MKE CitySmart** (mkecitysmart.com), bundles parking + sweeping + trash-day alerts. Official meter app is a **ParkMobile** white label. Datasets not yet independently confirmed.
 
 **Wyoming** — Cheyenne — not yet researched.
 

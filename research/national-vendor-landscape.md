@@ -10,13 +10,19 @@ Tucker's question, researched properly rather than guessed at: is there a nation
 - **Citation-processing vendors** (Duncan Solutions, Complus Data Innovations — 200+ municipal clients across 25 states, Conduent) also consolidate operationally with zero open data — billing/collections back-ends, not datasets.
 - **No federal/DOT standard exists** for municipal on-street parking, confirmed — parking is genuinely hyper-local governance, not federally standardized the way some transportation data is.
 
-## The one real exception, worth chasing directly
+## CDS — checked directly (2026-07-06), confirmed not a shortcut
 
-The **Curb Data Specification (CDS)**, from the Open Mobility Foundation — initially written off as B2B-focused (built for dockless-vehicle and loading-zone management between cities and mobility operators) — turns out to have real, if early, adoption: roughly **11 US cities**, including **LA, SF, DC, and Seattle** — four cities already on Chalked's candidate list (see SPEC.md → First adapters to build).
+The **Curb Data Specification (CDS)**, from the Open Mobility Foundation, has real adoption in LA, DC, and Seattle — but a direct check of each city's actual implementation confirms it does **not** cover sweeping or permit data, in any of them:
 
-CDS is a genuinely open, free, GTFS-like standard — not a gated vendor product. If these cities' actual CDS feeds cover sweeping/permit-relevant data, not just the loading-zone/curb-use data CDS was originally built for, that's a real shortcut: one schema parser instead of four bespoke per-city adapters.
+- **LA** ("Code the Curb," LADOT) — a downtown pilot covering ~200 curb miles via the CurbIQ vendor platform, funded by a $2M USDOT SMART grant. OMF's own framing of CDS's primary use case: "digitally sharing regulations, including loading zone rules and locations" — curb-loading, not residential parking. No mention of sweeping or permits in any LADOT/USDOT/OMF source.
+- **Seattle** (SDOT) — explicitly scoped to Commercial Vehicle Load Zones in a Belltown/Denny Triangle pilot (~25 zones), part of a "Digital Commercial Vehicle Permit Project." Same freight/loading framing.
+- **DC** (DDOT) — a pickup/drop-off and commercial-loading research pilot with vendor curbFlow at 9 locations, aimed at delivery/rideshare curb access.
 
-**Scope unconfirmed** — needs a direct check against each city's actual published feed before assuming this solves anything. High-priority open item (see SPEC.md → Next steps).
+**The schema itself confirms the scope**: the Curbs API's `activity` enum is `parking / no parking / loading / no loading / unloading / no unloading / stopping / no stopping / travel / no travel` — no dedicated value for street sweeping or residential permit zones exists. Those would have to be jury-rigged via a generic `purposes` array, not represented as first-class categories.
+
+**No open public feed exists anyway** — CDS's recommended auth is OAuth2 `client_credentials`, tokens "distributed to data partners." It's B2B-gated even where it does apply.
+
+**Verdict: CDS gives Chalked zero shortcut for sweeping or permit data, in LA, Seattle, or DC.** The bespoke per-city adapter approach (ArcGIS/Socrata tracing) already in use is confirmed as the right path — see [Los Angeles](cities/los-angeles.md). One incidental find worth a follow-up check: LA's open-data portal may also publish sweeping data via Socrata directly (`data.lacity.org`, dataset id `krk7-ayq2`, "Posted Street Sweeping Routes") alongside the ArcGIS Feature Service already confirmed — worth cross-checking whether it's the same underlying data exposed two ways, or a genuinely separate source.
 
 ## Worth knowing about, not free
 
@@ -24,7 +30,7 @@ CDS is a genuinely open, free, GTFS-like standard — not a gated vendor product
 
 ## Verdict
 
-Matches the per-city finding: every city is still effectively its own integration, just with a smaller menu of vendors behind the curtain. The CDS lead is the one thing worth checking before accepting that conclusion fully.
+Matches the per-city finding, now fully confirmed rather than provisional: every city is still effectively its own integration, just with a smaller menu of vendors behind the curtain. The CDS lead has been checked directly and closed out — no shortcut there. See also [research/city-hub-scan.md](city-hub-scan.md) for a broader, empirically-confirmed picture of which meter vendor actually serves which specific city.
 
 ## Sources
 - [Passport Open Parking Ecosystem](https://www.passportinc.com/parking-ecosystem/) · [Parking Rights API](https://developer.passportinc.com/docs/parking-rights/YXBpOjI1OTk0NDc2)

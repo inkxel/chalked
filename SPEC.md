@@ -3,6 +3,8 @@
 ## Concept
 Address or pin in, full street-parking picture out: street sweeping schedule, time limits, meters (including whether they're free on weekends/evenings), permit-parking zone status, and a break-in-risk overlay from public crime data.
 
+**The mission is bigger than the tool.** As much as being useful day-to-day, ParkPulse exists to make the fragmentation itself visible — every correction in this spec (LA's sweeping and permit data both existing but hidden behind undocumented ArcGIS dashboards, a decade-old "annual" dataset that was never actually refreshed) is a small, concrete demonstration of why a real national curb-data standard is overdue. This isn't just a human convenience problem anymore, either: autonomous vehicles need to know where they can and can't park, and when that data is stale or wrong, the failure shows up in the real world — see "Why this project exists" in the README.
+
 ## Research finding, up front: no national standard exists
 Researched before writing any of the rest of this spec, because the premise ("this info must be publicly available") needed a real answer, not an assumption.
 
@@ -90,6 +92,21 @@ Given the "every city is its own integration" finding plus the national-shell re
 - **Lookup** — address/pin in, resolve jurisdiction via the national base layer, check the coverage registry, either return the combined read (supported) or show the honest "not yet covered — help us add it" state linking to the contribution guide (unsupported).
 - **No OSM dependency for regulation data** — OSM (if used at all) is a basemap layer only, per the earlier finding.
 
+## Trust, error reporting & disclaimer
+
+Three related pieces, all Tucker's additions (2026-07-05), all load-bearing for a project that tells people where they can legally park.
+
+### Per-category confidence, shown to the user — not just in the schema
+The "data as of" timestamp (above) isn't only a backend field — it needs to surface as an actual visible confidence signal per category, e.g. "Sweeping: current" vs. "Permits: data from 2015, may be outdated." Silent staleness is worse than no data at all, because it reads as confident when it isn't. LA's permit dataset is the concrete case that forced this: real data, but a decade stale, and a user needs to see that distinction before trusting it over a posted sign.
+
+### User-reported errors, Google-Maps-style, auto-routed to GitHub Issues
+When ParkPulse shows something wrong — says a block is clear when the posted sign says otherwise — a user should be able to flag it inline, the way Google Maps lets you report a map error. The report (location, category, what they observed, ideally a photo of the sign) should auto-file as a GitHub issue on this repo, labeled by jurisdiction + category (e.g. `data-issue`, `city:los-angeles`, `category:permits` — a distinct label family from the `epic`/`ready`/`blocked` planning labels, so data-quality reports and build-planning issues don't collide in the tracker) so maintainers can triage per city. This turns user friction directly into a public, trackable data-quality record — and doubles as evidence for the "this needs a standard" argument, since a visible backlog of "wrong here" reports across cities makes the fragmentation case better than any essay would.
+
+**Open design requirement, not yet solved:** auto-filing anonymous user input as public GitHub issues is a real spam/abuse vector. Needs at least basic rate-limiting or a lightweight moderation/staging step before reports go public — do not ship the naive "instant direct post" version without one.
+
+### Disclaimer — heavy, upfront, non-negotiable
+The site is informational only. Not responsible for citations, towing, or any consequence of relying on it. Users must always defer to posted physical signage over anything ParkPulse shows — the same posture CURB takes ("the posted sign is always the source of truth"), and necessary here for the same reason: this is inferred/aggregated public data, not a legal guarantee. Needs to be prominent (not buried in a footer link) — a first-run notice or persistent banner, not just a ToS page nobody reads.
+
 ## First adapters to build (not "launch cities" — the map covers everywhere from day one)
 These are the first few jurisdictions worth building real adapters for, to prove the schema and seed the coverage map with real data — not a sequential rollout plan, since every place is already visible on the national map regardless.
 
@@ -126,3 +143,6 @@ Ranked by combined open-data coverage among jurisdictions with no comparable *op
 - [ ] Build the first real adapter — LA is the clean pick (population + most complete data); weigh NYC seriously too despite its permit-model gap, given its outsized population and enforcement intensity
 - [ ] Design the common schema with explicit per-category nullability and a "data as of" timestamp per category — and geometry-shape tolerance (LA's routes are polygons, SF's blocks are line segments; the schema needs to handle both, not assume one)
 - [ ] Prototype the crime-risk aggregation approach — this is the piece no existing tool (including CURB, sweep.la) does
+- [ ] Design the per-category confidence/staleness UI (not just the backend timestamp)
+- [ ] Design the error-report → GitHub Issue pipeline, including the anti-spam/moderation step before anything posts publicly
+- [ ] Write the disclaimer and decide its placement (first-run notice vs. persistent banner) before any public build ships

@@ -5,6 +5,18 @@ const AMBER_THRESHOLD_HOURS = 2;
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
+// Census state FIPS -> USPS abbreviation, for displaying national-layer jurisdiction names.
+const FIPS_TO_STATE = {
+  "01": "AL", "02": "AK", "04": "AZ", "05": "AR", "06": "CA", "08": "CO", "09": "CT",
+  "10": "DE", "11": "DC", "12": "FL", "13": "GA", "15": "HI", "16": "ID", "17": "IL",
+  "18": "IN", "19": "IA", "20": "KS", "21": "KY", "22": "LA", "23": "ME", "24": "MD",
+  "25": "MA", "26": "MI", "27": "MN", "28": "MS", "29": "MO", "30": "MT", "31": "NE",
+  "32": "NV", "33": "NH", "34": "NJ", "35": "NM", "36": "NY", "37": "NC", "38": "ND",
+  "39": "OH", "40": "OK", "41": "OR", "42": "PA", "44": "RI", "45": "SC", "46": "SD",
+  "47": "TN", "48": "TX", "49": "UT", "50": "VT", "51": "VA", "53": "WA", "54": "WV",
+  "55": "WI", "56": "WY", "60": "AS", "66": "GU", "69": "MP", "72": "PR", "78": "VI",
+};
+
 function nthWeekdayOfMonth(date) {
   return Math.floor((date.getDate() - 1) / 7) + 1;
 }
@@ -143,6 +155,62 @@ function refreshColors() {
   const now = getNow();
   geoLayer.setStyle(styleFeature(now));
 }
+
+// National base layer + coverage registry (SPEC.md's "national map shell from day one").
+// 19,731 places rendered via the canvas renderer, non-interactive per-feature -- with
+// this many polygons, per-feature DOM/hit-testing (the default SVG renderer path) would
+// be far too slow. Interactivity is handled once, at the map level, via turf lookup
+// against the already-loaded data instead of ~20k individual Leaflet click listeners.
+let nationalPlacesData = null;
+let coverageRegistry = null;
+
+Promise.all([
+  fetch("data/national-places.geojson").then((r) => r.json()),
+  fetch("data/coverage_registry.json").then((r) => r.json()),
+]).then(([places, registry]) => {
+  nationalPlacesData = places;
+  coverageRegistry = registry;
+
+  L.geoJSON(places, {
+    renderer: L.canvas(),
+    interactive: false,
+    style: (feature) => {
+      const covered = coverageRegistry[feature.properties.place_id];
+      return covered
+        ? { color: "#1565c0", weight: 1.5, fillOpacity: 0, opacity: 0.6 }
+        : { color: "#555", weight: 0.6, fillColor: "#888", fillOpacity: 0.55, opacity: 0.6 };
+    },
+  }).addTo(map);
+}).catch((err) => {
+  statusPanel.textContent = "Couldn't load the national coverage map: " + err.message;
+});
+
+// One click handler for the whole national layer, not ~20k per-feature ones (see above).
+// Only fires for clicks that no more-specific layer (sweeping/meters/permits) already
+// handled -- Leaflet's path click handlers stop propagation to the map by default, so a
+// click that actually lands on a colored zone never reaches here.
+map.on("click", (e) => {
+  if (!nationalPlacesData) return;
+  const point = turf.point([e.latlng.lng, e.latlng.lat]);
+  const place = nationalPlacesData.features.find((f) => turf.booleanPointInPolygon(point, f));
+
+  if (!place) {
+    statusPanel.textContent = "No jurisdiction found here (water, or an unincorporated area outside any incorporated place).";
+    return;
+  }
+
+  const covered = coverageRegistry[place.properties.place_id];
+  if (covered) {
+    statusPanel.innerHTML =
+      `You're in <strong>${place.properties.name}</strong> — click a colored sweeping/meters/permits zone above for its specific status, ` +
+      `or this spot may just not have one nearby.`;
+  } else {
+    statusPanel.innerHTML =
+      `You're in <strong>${place.properties.name}, ${FIPS_TO_STATE[place.properties.state_fips] || place.properties.state_fips}</strong> — ` +
+      `<span style="color:#c62828">not covered yet.</span> ` +
+      `<a href="https://github.com/inkxel/chalked" target="_blank">Help us add it →</a>`;
+  }
+});
 
 fetch("data/la-sweeping.geojson")
   .then((r) => r.json())

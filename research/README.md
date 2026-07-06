@@ -46,3 +46,4 @@ Every city file should be linked from its state's file, and every state file sho
 - [Municipal code hosting & unsigned rules](municipal-code-hosting.md) — the Walnut, CA case, and where to look for code-only rules
 - [National vendor & standard landscape](national-vendor-landscape.md) — meter vendors, CDS (checked and closed out), Parkopedia
 - [City hub-page & aggregator scan](city-hub-scan.md) — broad 29-city discovery pass: prior art (ParkUsher), confirmed vendor-by-city map, and the structural finding that street sweeping is almost universally split from meters/permits by department
+- [National boundary layer & coverage registry](national-boundary-layer.md) — how the "national map, gray where uncovered" base layer actually works: Census TIGERweb source, the size/simplification tradeoff, canvas rendering at 19,731-feature scale, and how to add a new city to the coverage registry

@@ -2,24 +2,29 @@
 
 Drop a pin or enter an address, get the full read on street parking there: street sweeping schedule, time limits, meters (and whether they're free on weekends/evenings), and permit-parking zone status. (A break-in/vehicle-crime-risk layer is a paused, open question — see [ETHICS.md](ETHICS.md) and [Discussion #1](https://github.com/inkxel/chalked/discussions/1) — not something we're shipping without real input first.)
 
-**Status: first working slice, LA sweeping only.** No national data standard exists for this — every city publishes (or doesn't publish) its own parking data differently. The full plan is a national map from day one (US Census boundaries), with real coverage growing jurisdiction by jurisdiction — this first slice validates the core pipeline (real source → common schema → live status) on one city and one category before building that out. See [SPEC.md](SPEC.md) for the full data landscape and architecture.
+**Status: national map shell is live, one city built out (LA — sweeping, meters, permits).** No national data standard exists for this — every city publishes (or doesn't publish) its own parking data differently. The map is genuinely national now: every US incorporated place is on it, LA shown supported, everywhere else honestly grayed out with a link to help add it — the actual pitch, not just a single-city demo. See [SPEC.md](SPEC.md) for the full data landscape and architecture.
 
 ## Running the v0 slice locally
 
 ```
-python3 scripts/fetch_la_sweeping.py   # re-fetch LA's sweeping data from LADOT (manual for now)
-python3 -m http.server 8000            # serve the static site
+python3 scripts/fetch_la_sweeping.py     # LA sweeping data from LADOT
+python3 scripts/fetch_la_meters.py       # LA meter locations/rates from LADOT
+python3 scripts/fetch_la_permits.py      # LA preferential parking districts from LADOT
+python3 scripts/fetch_national_places.py # all 19,731 US incorporated places from Census
+python3 -m http.server 8000              # serve the static site
 ```
 
-Then open `http://localhost:8000`. Search an LA address or click a colored zone on the map — green (clear), amber (sweeping starts within 2 hours), red (restricted now). Colors are computed from the real posted schedule against the current time, not hardcoded.
+Then open `http://localhost:8000`. Toggle Sweeping/Meters/Permits independently. Search an LA address or click a colored sweeping zone — green (clear), amber (starts within 2 hours), red (restricted now), computed from the real posted schedule against the current time. Click a meter for its rate. Click a permit district for its eligibility info and honest staleness disclosure. **Click anywhere else on the map** — inside LA (no specific zone there), in a different city entirely, or nowhere incorporated at all — and get a real, distinct answer for each case.
 
-**Verified working in a real browser (2026-07-06, via Playwright):** map renders with all 864 real zones colored correctly, clicking a zone shows its actual route/day/time/status, address search geocodes and finds the right zone (or honestly reports no coverage there). One real bug caught and fixed in the process: the US Census Geocoder doesn't send CORS headers, so it silently failed on every browser-based search — confirmed by testing the actual fetch, not assumed. Swapped to Nominatim (OSM), confirmed working the same way.
+**Verified working in a real browser (2026-07-06, via Playwright)** across every layer — including three real bugs caught and fixed along the way, not just assumed away: the US Census Geocoder silently fails on browser-based fetches (no CORS headers) — swapped to Nominatim; a bare ZIP code is globally ambiguous without a country constraint (a Sicilian postal code, once); and `map.latLngToContainerPoint()` is container-relative, not page-relative, which made one test look like a false app bug until traced down (documented in `app.js` so it doesn't cost anyone else the same loop).
 
 **What this slice is, honestly:**
-- One city (LA), one category (sweeping) — meters, permits, crime, and every other city are still just spec, not built. See SPEC.md → Next steps for what's next.
-- No national boundary/coverage-registry map yet — that's still the actual v1 milestone per SPEC.md, deliberately deferred so this first slice could ship fast and prove the core mechanic (adapter → schema → live status) end to end.
-- Data sync is a manual script run (`fetch_la_sweeping.py`), not yet a scheduled job — see SPEC.md's Data pipeline section for the intended automated version.
-- ~7 of LA's 871 posted routes ("Downtown"-type, weekly cadence instead of biweekly) aren't parsed yet — noted in the adapter script, not silently dropped. This is also why a Civic Center/Downtown address correctly shows "no coverage" rather than a wrong result.
+- One city fully built (LA: sweeping, meters, permits) — crime stays paused per the [ethics discussion](https://github.com/inkxel/chalked/discussions/1); every other city is still just spec. See SPEC.md → Next steps.
+- Data sync for all four datasets is a manual script run, not yet a scheduled job — see SPEC.md's Data pipeline section for the intended automated version.
+- ~7 of LA's 871 posted sweeping routes ("Downtown"-type, weekly cadence instead of biweekly) aren't parsed yet — noted in the adapter script, not silently dropped.
+- LA's meter dataset has no operating-hours field at all — shown as a rate/limit fact, not an implied schedule.
+- LA's permit-district dataset hasn't been confirmed updated since 2015 — surfaced directly in the UI, not just in docs.
+- The national layer is ~14MB (19,731 places, simplified to ~500m precision) — a real one-time load, cached by the browser after that; see [research/national-boundary-layer.md](research/national-boundary-layer.md) for the size tradeoffs considered.
 
 ## Get involved
 

@@ -1,0 +1,8 @@
+{
+  "0644000": {
+    "name": "Los Angeles",
+    "state": "CA",
+    "status": "supported",
+    "categories": ["sweeping", "meters", "permits"]
+  }
+}

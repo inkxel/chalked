@@ -32,6 +32,15 @@ The two timestamps matter and aren't interchangeable: `source.last_synced` is wh
 
 A contribution PR includes the script (`scripts/fetch_<city>_<category>.py`), not the generated `.geojson` output.
 
+**Before opening the PR, validate your adapter's output against the schema:**
+
+```
+python3 scripts/fetch_<city>_<category>.py
+python3 scripts/validate_schema.py geojson data/<city>-<category>.geojson
+```
+
+This checks structurally what a reviewer would otherwise have to check by eye — every feature has the common fields (`jurisdiction`, `category`, `data_as_of`, `source.{name,url,last_synced}`), a valid `category` value, parseable timestamps, and the category-specific keys documented in `schema/common-schema.md` (present, even if the value is legitimately `null`). It doesn't and can't check that your field *mappings* are correct — that still needs a human read of your transform function against the source's real schema.
+
 ## Registering your adapter
 
 Once your adapter works, add or update an entry in `data/coverage_registry.json` — **the one hand-maintained file in `data/`**, and the only registration step needed; the map, its blue/gray styling, and the click-fallback logic all read from this file with no other code changes required. See [schema/coverage-registry.md](schema/coverage-registry.md) for the full shape. Minimally:
@@ -69,6 +78,12 @@ SPEC.md's "First adapters to build" section ranks candidates by population × da
 Two research findings worth knowing before you start:
 - LA's own "gap" calls for sweeping and permits were both wrong — always dashboard-trace before writing off a category as unavailable.
 - Sweeping isn't a universal primary category — Sunbelt cities show little to no sweeping enforcement (see `research/city-hub-scan.md`), so a Sunbelt adapter's natural lead category may be meters or permits instead. Mark sweeping `not_applicable` there, not `gap` — see `schema/common-schema.md`'s status enum for why that distinction matters.
+
+## CI
+
+`.github/workflows/lint.yml` runs on every PR: Python syntax on `scripts/*.py`, the registry validator above against `data/coverage_registry.json`, YAML validity on the issue templates/workflows, and a syntax check on `app.js`. It can't validate your adapter's actual output (that's gitignored, see `data/README.md`) — run `validate_schema.py geojson` yourself before pushing, per above.
+
+If you're filing a data-issue or unsigned-rule report through the GitHub issue templates, `.github/workflows/label-data-issues.yml` automatically applies `city:*`/`category:*` labels by parsing the Jurisdiction/Category fields you filled in — no manual triage step needed for that part anymore.
 
 ## Style
 
